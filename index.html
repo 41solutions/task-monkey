@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="en"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxNDE5OTMzNTgzNTQxMDg1ODQ5MCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzBkNWFhOGU2N2E1MWM3NmJfaW5kZXguaHRtbC03NTEifSwiZXhwIjoxNzk0OTA0MDM2LCJpYXQiOjE3OTQ5MDA0MzYsImFsZyI6IlJTMjU2In0.mY7n_W-zFEAiukpt4ScL1_VsiavNVGnUKHCJmB_5WP38pcA8hMnD0JDCSqO04lQ9WpAbJRE5RMbp4Gdl4XA7elwaC7K7b4Vh3_TagjQQM4Uyz0URP-s6pUGhsdXtOzFRWOHIPF89AsAaaaAmvmQq5sJoJNCg3PtjYjLHx815qJWa3PuOuKtf2iCfN0V8-I0ekhp5Q8u7MlWcqimoDylP8TA6B789ZH5yC8kMvWoqN8G3Ulm3_dxlAzlczODlSK4J-hD4EGRxKIL1AMj3zIVcYa4fj1m1pSpfwRnBX0HZ-mN4cpYb3lb0Ih9_zXT9MmwODMRb3-DN6KZCmW9ujP3y-w","c_0d5aa8e67a51c76b_index.html-751")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChoreStars - Kids Chore &amp; Rewards Tracker</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" crossorigin="anonymous"></script>
+  <!-- Google Fonts: Fredoka & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest" crossorigin="anonymous"></script>
+  <!-- Mobile App / PWA Capable Meta Tags -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ChoreStars">
+  <meta name="theme-color" content="#7C3AED">
+
+  <style id="chorestars-styles">
+    body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+    .font-fredoka { font-family: 'Fredoka', sans-serif; }
+    @keyframes pop {
+      0% { transform: scale(0.96); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes bounceSlight {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+    @keyframes spinSlow {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .animate-pop { animation: pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    .animate-bounce-slight { animation: bounceSlight 2.5s ease-in-out infinite; }
+    .animate-spin-slow { animation: spinSlow 10s linear infinite; }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0px}.-bottom-1{bottom:-0.25rem}.-bottom-2{bottom:-0.5rem}.-right-1{right:-0.25rem}.-right-10{right:-2.5rem}.-right-2{right:-0.5rem}.-right-24{right:-6rem}.-top-10{top:-2.5rem}.-top-24{top:-6rem}.bottom-6{bottom:1.5rem}.left-1\/2{left:50%}.top-0{top:0px}.z-10{z-index:10}.z-40{z-index:40}.z-50{z-index:50}.col-span-1{grid-column:span 1 / span 1}.col-span-2{grid-column:span 2 / span 2}.-mx-2{margin-left:-0.5rem;margin-right:-0.5rem}.mx-auto{margin-left:auto;margin-right:auto}.-mr-2{margin-right:-0.5rem}.-mt-2{margin-top:-0.5rem}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.mt-0\.5{margin-top:0.125rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-3{margin-top:0.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-6{margin-top:1.5rem}.block{display:block}.inline-block{display:inline-block}.flex{display:flex}.inline-flex{display:inline-flex}.grid{display:grid}.hidden{display:none}.h-10{height:2.5rem}.h-12{height:3rem}.h-14{height:3.5rem}.h-16{height:4rem}.h-20{height:5rem}.h-3{height:0.75rem}.h-3\.5{height:0.875rem}.h-4{height:1rem}.h-40{height:10rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-64{height:16rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-full{height:100%}.max-h-\[300px\]{max-height:300px}.max-h-\[90vh\]{max-height:90vh}.max-h-\[92vh\]{max-height:92vh}.min-h-screen{min-height:100vh}.w-10{width:2.5rem}.w-12{width:3rem}.w-14{width:3.5rem}.w-16{width:4rem}.w-20{width:5rem}.w-3{width:0.75rem}.w-3\.5{width:0.875rem}.w-32{width:8rem}.w-4{width:1rem}.w-40{width:10rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-full{width:100%}.min-w-\[100px\]{min-width:100px}.min-w-\[140px\]{min-width:140px}.max-w-5xl{max-width:64rem}.max-w-\[240px\]{max-width:240px}.max-w-lg{max-width:32rem}.max-w-md{max-width:28rem}.max-w-sm{max-width:24rem}.max-w-xl{max-width:36rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.flex-grow{flex-grow:1}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.translate-y-24{--tw-translate-y:6rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.scale-105{--tw-scale-x:1.05;--tw-scale-y:1.05;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-pointer{cursor:pointer}.snap-x{scroll-snap-type:x var(--tw-scroll-snap-strictness)}.snap-center{scroll-snap-align:center}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-6{gap:1.5rem}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.space-y-3 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.75rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.75rem * var(--tw-space-y-reverse))}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.space-y-5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.25rem * var(--tw-space-y-reverse))}.space-y-6 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1.5rem * var(--tw-space-y-reverse))}.space-y-8 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(2rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(2rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.rounded-2xl{border-radius:1rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-md{border-radius:0.375rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-2{border-width:2px}.border-4{border-width:4px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-dashed{border-style:dashed}.border-emerald-200{--tw-border-opacity:1;border-color:rgb(167 243 208 / var(--tw-border-opacity, 1))}.border-rose-200{--tw-border-opacity:1;border-color:rgb(254 205 211 / var(--tw-border-opacity, 1))}.border-slate-100{--tw-border-opacity:1;border-color:rgb(241 245 249 / var(--tw-border-opacity, 1))}.border-slate-200{--tw-border-opacity:1;border-color:rgb(226 232 240 / var(--tw-border-opacity, 1))}.border-slate-300{--tw-border-opacity:1;border-color:rgb(203 213 225 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-900{--tw-border-opacity:1;border-color:rgb(15 23 42 / var(--tw-border-opacity, 1))}.border-transparent{border-color:transparent}.border-violet-200{--tw-border-opacity:1;border-color:rgb(221 214 254 / var(--tw-border-opacity, 1))}.border-violet-500{--tw-border-opacity:1;border-color:rgb(139 92 246 / var(--tw-border-opacity, 1))}.border-white{--tw-border-opacity:1;border-color:rgb(255 255 255 / var(--tw-border-opacity, 1))}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-white\/40{border-color:rgb(255 255 255 / 0.4)}.bg-amber-100{--tw-bg-opacity:1;background-color:rgb(254 243 199 / var(--tw-bg-opacity, 1))}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-500{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.bg-black\/20{background-color:rgb(0 0 0 / 0.2)}.bg-emerald-100{--tw-bg-opacity:1;background-color:rgb(209 250 229 / var(--tw-bg-opacity, 1))}.bg-emerald-400{--tw-bg-opacity:1;background-color:rgb(52 211 153 / var(--tw-bg-opacity, 1))}.bg-emerald-50{--tw-bg-opacity:1;background-color:rgb(236 253 245 / var(--tw-bg-opacity, 1))}.bg-emerald-500{--tw-bg-opacity:1;background-color:rgb(16 185 129 / var(--tw-bg-opacity, 1))}.bg-emerald-600{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.bg-rose-50{--tw-bg-opacity:1;background-color:rgb(255 241 242 / var(--tw-bg-opacity, 1))}.bg-slate-100{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.bg-slate-200{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.bg-slate-50{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-transparent{background-color:transparent}.bg-violet-100{--tw-bg-opacity:1;background-color:rgb(237 233 254 / var(--tw-bg-opacity, 1))}.bg-violet-50{--tw-bg-opacity:1;background-color:rgb(245 243 255 / var(--tw-bg-opacity, 1))}.bg-violet-600{--tw-bg-opacity:1;background-color:rgb(124 58 237 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.bg-white\/10{background-color:rgb(255 255 255 / 0.1)}.bg-white\/20{background-color:rgb(255 255 255 / 0.2)}.bg-white\/30{background-color:rgb(255 255 255 / 0.3)}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.from-amber-400{--tw-gradient-from:#fbbf24 var(--tw-gradient-from-position);--tw-gradient-to:rgb(251 191 36 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-400{--tw-gradient-from:#22d3ee var(--tw-gradient-from-position);--tw-gradient-to:rgb(34 211 238 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-emerald-400{--tw-gradient-from:#34d399 var(--tw-gradient-from-position);--tw-gradient-to:rgb(52 211 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-pink-400{--tw-gradient-from:#f472b6 var(--tw-gradient-from-position);--tw-gradient-to:rgb(244 114 182 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-violet-50{--tw-gradient-from:#f5f3ff var(--tw-gradient-from-position);--tw-gradient-to:rgb(245 243 255 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-pink-500{--tw-gradient-from:#ec4899 var(--tw-gradient-from-position);--tw-gradient-to:rgb(236 72 153 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.to-blue-500{--tw-gradient-to:#3b82f6 var(--tw-gradient-to-position)}.to-indigo-50{--tw-gradient-to:#eef2ff var(--tw-gradient-to-position)}.to-orange-500{--tw-gradient-to:#f97316 var(--tw-gradient-to-position)}.to-rose-500{--tw-gradient-to:#f43f5e var(--tw-gradient-to-position)}.to-teal-500{--tw-gradient-to:#14b8a6 var(--tw-gradient-to-position)}.to-purple-600{--tw-gradient-to:#9333ea var(--tw-gradient-to-position)}.p-0\.5{padding:0.125rem}.p-1{padding:0.25rem}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-3\.5{padding-left:0.875rem;padding-right:0.875rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.py-2\.5{padding-top:0.625rem;padding-bottom:0.625rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.pb-2{padding-bottom:0.5rem}.pb-24{padding-bottom:6rem}.pb-3{padding-bottom:0.75rem}.pb-4{padding-bottom:1rem}.pr-1{padding-right:0.25rem}.pt-1{padding-top:0.25rem}.pt-2{padding-top:0.5rem}.pt-3{padding-top:0.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.pt-6{padding-top:1.5rem}.text-left{text-align:left}.text-center{text-align:center}.font-mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-4xl{font-size:2.25rem;line-height:2.5rem}.text-6xl{font-size:3.75rem;line-height:1}.text-\[10px\]{font-size:10px}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-medium{font-weight:500}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.lowercase{text-transform:lowercase}.leading-tight{line-height:1.25}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-amber-500{--tw-text-opacity:1;color:rgb(245 158 11 / var(--tw-text-opacity, 1))}.text-amber-600{--tw-text-opacity:1;color:rgb(217 119 6 / var(--tw-text-opacity, 1))}.text-amber-950{--tw-text-opacity:1;color:rgb(69 26 3 / var(--tw-text-opacity, 1))}.text-emerald-600{--tw-text-opacity:1;color:rgb(5 150 105 / var(--tw-text-opacity, 1))}.text-emerald-700{--tw-text-opacity:1;color:rgb(4 120 87 / var(--tw-text-opacity, 1))}.text-rose-700{--tw-text-opacity:1;color:rgb(190 18 60 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-500{--tw-text-opacity:1;color:rgb(100 116 139 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-slate-700{--tw-text-opacity:1;color:rgb(51 65 85 / var(--tw-text-opacity, 1))}.text-slate-800{--tw-text-opacity:1;color:rgb(30 41 59 / var(--tw-text-opacity, 1))}.text-slate-900{--tw-text-opacity:1;color:rgb(15 23 42 / var(--tw-text-opacity, 1))}.text-violet-600{--tw-text-opacity:1;color:rgb(124 58 237 / var(--tw-text-opacity, 1))}.text-violet-700{--tw-text-opacity:1;color:rgb(109 40 217 / var(--tw-text-opacity, 1))}.text-violet-800{--tw-text-opacity:1;color:rgb(91 33 182 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.text-white\/80{color:rgb(255 255 255 / 0.8)}.text-white\/90{color:rgb(255 255 255 / 0.9)}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.accent-amber-500{accent-color:#f59e0b}.opacity-0{opacity:0}.opacity-20{opacity:0.2}.opacity-30{opacity:0.3}.opacity-50{opacity:0.5}.opacity-75{opacity:0.75}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_10px_rgba\(255\2c 255\2c 255\2c 0\.8\)\]{--tw-shadow:0 0 10px rgba(255,255,255,0.8);--tw-shadow-colored:0 0 10px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-inner{--tw-shadow:inset 0 2px 4px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:inset 0 2px 4px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-md{--tw-shadow:0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -2px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-sm{--tw-shadow:0 1px 2px 0 rgb(0 0 0 / 0.05);--tw-shadow-colored:0 1px 2px 0 var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-amber-200{--tw-shadow-color:#fde68a;--tw-shadow:var(--tw-shadow-colored)}.shadow-violet-200{--tw-shadow-color:#ddd6fe;--tw-shadow:var(--tw-shadow-colored)}.outline-none{outline:2px solid transparent;outline-offset:2px}.blur-3xl{--tw-blur:blur(64px);filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.drop-shadow-md{--tw-drop-shadow:drop-shadow(0 4px 3px rgb(0 0 0 / 0.07)) drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-sm{--tw-backdrop-blur:blur(4px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-1000{transition-duration:1000ms}.duration-300{transition-duration:300ms}.ease-out{transition-timing-function:cubic-bezier(0, 0, 0.2, 1)}.hover\:border-violet-400:hover{--tw-border-opacity:1;border-color:rgb(167 139 250 / var(--tw-border-opacity, 1))}.hover\:bg-amber-500:hover{--tw-bg-opacity:1;background-color:rgb(245 158 11 / var(--tw-bg-opacity, 1))}.hover\:bg-amber-600:hover{--tw-bg-opacity:1;background-color:rgb(217 119 6 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-200:hover{--tw-bg-opacity:1;background-color:rgb(167 243 208 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-600:hover{--tw-bg-opacity:1;background-color:rgb(5 150 105 / var(--tw-bg-opacity, 1))}.hover\:bg-emerald-700:hover{--tw-bg-opacity:1;background-color:rgb(4 120 87 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-100:hover{--tw-bg-opacity:1;background-color:rgb(241 245 249 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-200:hover{--tw-bg-opacity:1;background-color:rgb(226 232 240 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-50:hover{--tw-bg-opacity:1;background-color:rgb(248 250 252 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-violet-100:hover{--tw-bg-opacity:1;background-color:rgb(237 233 254 / var(--tw-bg-opacity, 1))}.hover\:bg-violet-700:hover{--tw-bg-opacity:1;background-color:rgb(109 40 217 / var(--tw-bg-opacity, 1))}.hover\:bg-white\/20:hover{background-color:rgb(255 255 255 / 0.2)}.hover\:text-slate-600:hover{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.hover\:text-violet-600:hover{--tw-text-opacity:1;color:rgb(124 58 237 / var(--tw-text-opacity, 1))}.hover\:text-violet-700:hover{--tw-text-opacity:1;color:rgb(109 40 217 / var(--tw-text-opacity, 1))}.hover\:shadow-xl:hover{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.focus\:bg-white:focus{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-amber-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(245 158 11 / var(--tw-ring-opacity, 1))}.focus\:ring-emerald-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(16 185 129 / var(--tw-ring-opacity, 1))}.focus\:ring-violet-500:focus{--tw-ring-opacity:1;--tw-ring-color:rgb(139 92 246 / var(--tw-ring-opacity, 1))}.active\:scale-95:active{--tw-scale-x:.95;--tw-scale-y:.95;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:translate-x-1{--tw-translate-x:0.25rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:scale-110{--tw-scale-x:1.1;--tw-scale-y:1.1;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.group:hover .group-hover\:opacity-100{opacity:1}.group:hover .group-hover\:opacity-10{opacity:0.1}@media (min-width: 640px){.sm\:inline{display:inline}.sm\:flex{display:flex}.sm\:h-24{height:6rem}.sm\:w-24{width:6rem}.sm\:w-auto{width:auto}.sm\:flex-none{flex:none}.sm\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:flex-row{flex-direction:row}.sm\:items-start{align-items:flex-start}.sm\:items-center{align-items:center}.sm\:justify-start{justify-content:flex-start}.sm\:p-6{padding:1.5rem}.sm\:p-8{padding:2rem}.sm\:text-left{text-align:left}.sm\:text-4xl{font-size:2.25rem;line-height:2.5rem}.sm\:text-5xl{font-size:3rem;line-height:1}.sm\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 768px){.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}@media (min-width: 1024px){.lg\:col-span-2{grid-column:span 2 / span 2}.lg\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4, minmax(0, 1fr))}}</style><script>
+          window.__bundled_chorestars_state = {"family":{"name":"Raising responsible humans","parentName":"Mom & Dad","inviteCode":"STAR-2026","parentPin":"1234","lastResetPhDate":"2026-11-17"},"kids":[{"id":"kid-1","name":"Boy","username":"boy","pin":"1111","avatar":"🦁","theme":"from-amber-400 to-orange-500","stars":85,"totalEarned":145,"streak":4},{"id":"kid-2","name":"Girl","username":"girl","pin":"2222","avatar":"🦄","theme":"from-pink-500 to-purple-600","stars":110,"totalEarned":190,"streak":6}],"tasks":[{"id":"t-1","title":"Make Bed","emoji":"🛏️","category":"chores","points":15,"assigneeId":"kid-1","frequency":"daily","approvalMode":"parent_verify","status":"assigned","note":""},{"id":"t-2","title":"Read Book","emoji":"📖","category":"reading","points":25,"assigneeId":"kid-2","frequency":"daily","approvalMode":"parent_verify","status":"pending_approval","note":""}],"rewards":[{"id":"r-1","title":"Extra Screen Time","emoji":"🎮","cost":50,"desc":"30 mins play time"},{"id":"r-2","title":"Ice Cream","emoji":"🍦","cost":80,"desc":"Your favorite flavor"}],"redemptions":[],"adjustments":[]};
+          document.addEventListener('DOMContentLoaded', () => {
+             try {
+                if (window.__bundled_chorestars_state) {
+                   const bs = window.__bundled_chorestars_state;
+                   if (!localStorage.getItem('chorestars_family')) localStorage.setItem('chorestars_family', JSON.stringify(bs.family));
+                   if (!localStorage.getItem('chorestars_kids')) localStorage.setItem('chorestars_kids', JSON.stringify(bs.kids));
+                   if (!localStorage.getItem('chorestars_tasks')) localStorage.setItem('chorestars_tasks', JSON.stringify(bs.tasks));
+                   if (!localStorage.getItem('chorestars_rewards')) localStorage.setItem('chorestars_rewards', JSON.stringify(bs.rewards));
+                   if (!localStorage.getItem('chorestars_redemptions')) localStorage.setItem('chorestars_redemptions', JSON.stringify(bs.redemptions));
+                   if (!localStorage.getItem('chorestars_adjustments')) localStorage.setItem('chorestars_adjustments', JSON.stringify(bs.adjustments));
+                }
+             } catch(e) {}
+          });
+        </script></head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- ================= HEADER NAV ================= -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 shadow-sm">
+    <div class="max-w-5xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <div class="w-8 h-8 rounded-xl bg-violet-600 text-white flex items-center justify-center font-bold shadow-md shadow-violet-200 animate-bounce-slight">
+          ⭐
+        </div>
+        <div>
+          <h1 class="font-fredoka text-lg font-bold text-slate-800 leading-tight">ChoreStars</h1>
+          <p class="text-[10px] font-semibold text-slate-500 flex items-center gap-1 uppercase tracking-wider" id="headerPhClock">🇵🇭 PH: Tue, Nov 17, 3:28 PM</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- Quick Profile Switcher (Visible when logged in) -->
+        <div id="quickProfileSwitcher" class="hidden sm:flex items-center gap-1 bg-slate-50 p-1 rounded-full border border-slate-200"><button onclick="app.quickSwitchToParent()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition text-slate-500 hover:bg-slate-100"><span class="w-4 h-4 rounded-full bg-violet-600 text-white flex items-center justify-center text-[10px]">P</span>Parent</button><button onclick="app.quickSwitchToKid('kid-1')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition text-slate-500 hover:bg-slate-100">🦁 Boy</button><button onclick="app.quickSwitchToKid('kid-2')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition text-slate-500 hover:bg-slate-100">🦄 Girl</button></div>
+
+        <button onclick="app.openSharePackageModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-violet-50 text-violet-700 hover:bg-violet-100 font-bold text-xs transition border border-violet-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="globe" aria-hidden="true" class="lucide lucide-globe w-3.5 h-3.5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg> <span class="hidden sm:inline">Share &amp; Go Online</span>
+        </button>
+
+        <button onclick="app.logoutToPortal()" id="btnLogout" class="hidden w-8 h-8 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-slate-200 transition">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="log-out" aria-hidden="true" class="lucide lucide-log-out w-4 h-4"><path d="m16 17 5-5-5-5"></path><path d="M21 12H9"></path><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="appContainer" class="flex-grow w-full max-w-5xl mx-auto p-4 sm:p-6 pb-24">
+
+    <!-- ================= VIEW 1: FAMILY PORTAL ================= -->
+    <div id="portalView" class="space-y-8 animate-pop">
+      <div class="text-center max-w-xl mx-auto pt-6 pb-4">
+        <div class="inline-block p-3 rounded-2xl bg-amber-100 text-amber-600 mb-3 animate-bounce-slight shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="sparkles" aria-hidden="true" class="lucide lucide-sparkles w-8 h-8"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg>
+        </div>
+        <h2 class="font-fredoka text-3xl sm:text-4xl font-bold text-slate-900 mb-2">
+          Welcome to <span id="portalFamilyTitle" class="text-violet-600 bg-violet-50 px-2 rounded-lg">Raising responsible humans</span>!
+        </h2>
+        <p class="text-sm text-slate-500 font-medium">Select your profile to check tasks, approve chores, or visit the rewards store.</p>
+      </div>
+
+      <!-- Portal Tabs -->
+      <div class="max-w-xs mx-auto flex gap-1 p-1 bg-slate-100 rounded-xl">
+        <button id="tabBtnSelectProfile" onclick="app.switchPortalTab('select')" class="flex-1 py-2.5 px-3 rounded-xl font-fredoka font-bold text-xs sm:text-sm bg-violet-600 text-white shadow-sm transition flex items-center justify-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="users" aria-hidden="true" class="lucide lucide-users w-4 h-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg> Sign In
+        </button>
+        <button id="tabBtnKidSignup" onclick="app.switchPortalTab('signup')" class="flex-1 py-2.5 px-3 rounded-xl font-fredoka font-bold text-xs sm:text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center justify-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="user-plus" aria-hidden="true" class="lucide lucide-user-plus w-4 h-4"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" x2="19" y1="8" y2="14"></line><line x1="22" x2="16" y1="11" y2="11"></line></svg> Create Kid
+        </button>
+      </div>
+
+      <!-- Sign In Tab -->
+      <div id="portalTabSelect" class="space-y-6">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="portalKidList">
+          <button onclick="app.openKidLoginModal('kid-1')" class="group bg-white border border-slate-200 rounded-3xl p-5 hover:shadow-xl transition text-center animate-pop relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-amber-400 to-orange-500 opacity-0 group-hover:opacity-10 transition"></div>
+            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-3xl shadow-inner border-4 border-white mb-2 group-hover:scale-110 transition z-10 relative">🦁</div>
+            <h3 class="font-fredoka text-lg font-bold text-slate-800 relative z-10">Boy</h3>
+            <p class="text-xs font-bold text-amber-500 mt-1 relative z-10">⭐ 85 Stars</p>
+          </button>
+          <button onclick="app.openKidLoginModal('kid-2')" class="group bg-white border border-slate-200 rounded-3xl p-5 hover:shadow-xl transition text-center animate-pop relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-br from-pink-500 to-purple-600 opacity-0 group-hover:opacity-10 transition"></div>
+            <div class="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-3xl shadow-inner border-4 border-white mb-2 group-hover:scale-110 transition z-10 relative">🦄</div>
+            <h3 class="font-fredoka text-lg font-bold text-slate-800 relative z-10">Girl</h3>
+            <p class="text-xs font-bold text-amber-500 mt-1 relative z-10">⭐ 110 Stars</p>
+          </button></div>
+
+        <div class="pt-6 mt-6 border-t border-slate-200 max-w-sm mx-auto w-full">
+          <button onclick="app.openParentPinModal()" class="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-3xl p-4 flex items-center justify-between transition group shadow-lg">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center text-white group-hover:scale-110 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield" aria-hidden="true" class="lucide lucide-shield w-6 h-6"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg>
+              </div>
+              <div class="text-left">
+                <h3 class="font-fredoka text-lg font-bold">Parent Hub</h3>
+                <p class="text-[10px] text-slate-300 font-semibold uppercase tracking-wider">PIN Protected</p>
+              </div>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="chevron-right" aria-hidden="true" class="lucide lucide-chevron-right w-5 h-5 opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Create Kid Tab -->
+      <div id="portalTabSignup" class="hidden max-w-md mx-auto bg-white p-6 sm:p-8 rounded-3xl shadow-xl border border-slate-100 animate-pop">
+        <div class="text-center mb-6">
+          <h3 class="font-fredoka text-2xl font-bold text-slate-800 mb-1">Create Kid Account</h3>
+          <p class="text-xs text-slate-500 font-medium">Join the family and start earning stars!</p>
+        </div>
+        
+        <form onsubmit="app.handleKidSignup(event)" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Display Name</label>
+            <input type="text" id="signupKidName" placeholder="e.g. Boy" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-sm transition">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username</label>
+            <input type="text" id="signupKidUsername" placeholder="e.g. boystar" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-sm transition lowercase">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Secret PIN (4 Digits)</label>
+            <input type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" id="signupKidPin" placeholder="••••" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none font-mono text-center tracking-widest text-lg font-bold transition">
+          </div>
+          
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Choose Avatar</label>
+            <div class="flex gap-2 justify-center flex-wrap" id="signupAvatars">
+              <button type="button" onclick="app.selectSignupAvatar('🦁')" class="avatar-choice p-2 rounded-xl border-2 border-violet-500 bg-violet-50 text-xl">🦁</button>
+              <button type="button" onclick="app.selectSignupAvatar('🦄')" class="avatar-choice p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xl">🦄</button>
+              <button type="button" onclick="app.selectSignupAvatar('🚀')" class="avatar-choice p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xl">🚀</button>
+              <button type="button" onclick="app.selectSignupAvatar('🐼')" class="avatar-choice p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xl">🐼</button>
+              <button type="button" onclick="app.selectSignupAvatar('🦖')" class="avatar-choice p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xl">🦖</button>
+              <button type="button" onclick="app.selectSignupAvatar('🦋')" class="avatar-choice p-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xl">🦋</button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Theme Color</label>
+            <div class="flex gap-3 justify-center">
+              <button type="button" onclick="app.selectSignupTheme('from-amber-400 to-orange-500', this)" class="theme-choice w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-slate-900 scale-105 transition"></button>
+              <button type="button" onclick="app.selectSignupTheme('from-pink-400 to-rose-500', this)" class="theme-choice w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 border-2 border-transparent transition"></button>
+              <button type="button" onclick="app.selectSignupTheme('from-cyan-400 to-blue-500', this)" class="theme-choice w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 border-2 border-transparent transition"></button>
+              <button type="button" onclick="app.selectSignupTheme('from-emerald-400 to-teal-500', this)" class="theme-choice w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 border-2 border-transparent transition"></button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Family Invite Code</label>
+            <input type="text" id="signupFamilyCode" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none font-mono text-center text-sm font-bold transition uppercase" placeholder="e.g. STAR-2026">
+          </div>
+
+          <button type="submit" class="w-full py-3 mt-2 rounded-xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-fredoka font-bold text-sm shadow-md transition active:scale-95">
+            Create Account &amp; Get +25 Stars
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 2: PARENT HUB ================= -->
+    <div id="parentHubView" class="hidden space-y-6 animate-pop">
+      
+      <!-- Top Overview Dashboard -->
+      <div class="bg-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-64 h-64 bg-violet-600 rounded-full blur-3xl opacity-30"></div>
+        <div class="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="font-fredoka text-2xl font-bold flex items-center gap-2">
+              <span>🛡️</span> Parent Command Center
+            </h2>
+            <p class="text-sm text-slate-300 mt-1">Manage tasks, approve chores, and reward your kids.</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="app.triggerManualPhReset()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-fredoka font-semibold text-xs flex items-center gap-1.5 transition backdrop-blur-sm border border-white/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="rotate-ccw" aria-hidden="true" class="lucide lucide-rotate-ccw w-3.5 h-3.5"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg> Reset Daily Tasks
+            </button>
+            <button onclick="app.openParentSettingsModal()" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-fredoka font-semibold text-xs flex items-center gap-1.5 transition backdrop-blur-sm border border-white/10">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="settings" aria-hidden="true" class="lucide lucide-settings w-3.5 h-3.5"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path><circle cx="12" cy="12" r="3"></circle></svg> Settings
+            </button>
+          </div>
+        </div>
+
+        <!-- Star Earnings Summary Grid -->
+        <div class="mt-6 pt-5 border-t border-white/10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3" id="parentKidSummaryGrid">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- Parent Main Grid Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Tasks -->
+        <div class="lg:col-span-2 space-y-6">
+          
+          <!-- Create Quick Task Inline Studio -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+                <span>✨</span> Quick Task Studio
+              </h3>
+              <button onclick="app.openModal('createTaskModal')" class="text-xs font-bold text-violet-600 hover:text-violet-700 bg-violet-50 hover:bg-violet-100 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="maximize-2" aria-hidden="true" class="lucide lucide-maximize-2 w-3.5 h-3.5"><path d="M15 3h6v6"></path><path d="m21 3-7 7"></path><path d="m3 21 7-7"></path><path d="M9 21H3v-6"></path></svg> Advanced Mode
+              </button>
+            </div>
+            
+            <form onsubmit="app.handleStudioCreateTask(event)" class="space-y-4">
+              <!-- Presets -->
+              <div class="flex gap-2 overflow-x-auto pb-2 -mx-2 px-2 snap-x" id="studioQuickPresets">
+                <!-- Rendered via JS -->
+              </div>
+              
+              <div class="flex flex-col sm:flex-row gap-3">
+                <div class="w-14 h-14 shrink-0 relative">
+                  <input type="text" id="studioTaskEmoji" value="🧹" required="" class="w-full h-full text-center text-2xl rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none">
+                  <div class="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-slate-200"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="smile" aria-hidden="true" class="lucide lucide-smile w-3 h-3 text-slate-400"><path d="M15 10V9"></path><path d="M16.472 15a6 6 0 01-8.943 0"></path><path d="M9 10V9"></path><circle cx="12" cy="12" r="10"></circle></svg></div>
+                </div>
+                <div class="flex-1">
+                  <input type="text" id="studioTaskTitle" placeholder="What needs to be done?" required="" class="w-full px-4 py-3 rounded-2xl border border-slate-300 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-violet-500 outline-none font-semibold text-sm">
+                </div>
+              </div>
+
+              <!-- Inline Assignee & Settings -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                <div>
+                  <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Assign To:</label>
+                  <div class="flex flex-wrap gap-1.5" id="studioKidChips">
+                    <!-- Rendered via JS -->
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                   <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Category</label>
+                      <select id="studioTaskCategory" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold bg-white outline-none">
+                        <option value="chores">🧹 Chores</option>
+                        <option value="homework">📚 Homework</option>
+                        <option value="health">🥗 Health</option>
+                        <option value="kindness">💖 Kindness</option>
+                        <option value="reading">📖 Reading</option>
+                      </select>
+                   </div>
+                   <div>
+                      <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Frequency</label>
+                      <select id="studioTaskFrequency" class="w-full px-2 py-1.5 rounded-lg border border-slate-200 text-xs font-semibold bg-white outline-none">
+                        <option value="daily">🔄 Daily</option>
+                        <option value="once">⏳ Once</option>
+                      </select>
+                   </div>
+                </div>
+              </div>
+
+              <!-- Points & Submit -->
+              <div class="flex flex-col sm:flex-row items-center gap-4 pt-1">
+                <div class="flex-1 w-full space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label class="text-xs font-bold text-slate-700 flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="star" aria-hidden="true" class="lucide lucide-star w-3.5 h-3.5 text-amber-500"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg> Star Reward</label>
+                    <div class="flex items-center gap-1.5">
+                      <input type="number" id="studioTaskPoints" value="15" min="1" max="1000" oninput="app.syncStudioPointsFromInput()" class="w-16 px-2 py-1 text-xs font-bold text-amber-600 text-center border border-slate-200 rounded-lg">
+                    </div>
+                  </div>
+                  <input type="range" id="studioPointsSlider" min="5" max="100" step="5" value="15" oninput="app.setStudioPoints(this.value)" class="w-full accent-amber-500">
+                  <div class="flex justify-between text-[10px] text-slate-400 font-bold px-1">
+                    <span>5</span><span>25</span><span>50</span><span>100</span>
+                  </div>
+                </div>
+                
+                <div class="w-full sm:w-auto shrink-0 flex gap-2">
+                  <button type="submit" class="flex-1 sm:flex-none px-6 py-3 rounded-2xl bg-amber-400 hover:bg-amber-500 text-amber-950 font-fredoka font-bold text-sm shadow-md shadow-amber-200 transition flex items-center justify-center gap-2">
+                    Assign Task <span class="bg-white/30 px-2 py-0.5 rounded-md text-xs">⭐ <span id="studioSubmitPointsLabel">15</span></span>
+                  </button>
+                </div>
+              </div>
+              <input type="hidden" id="studioTaskApproval" value="parent_verify">
+              <input type="hidden" id="studioTaskNote" value="">
+            </form>
+          </div>
+
+          <!-- Pending Approvals -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+             <div class="flex items-center justify-between mb-4">
+                <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <span>⏳</span> Needs Parent Approval
+                </h3>
+             </div>
+             <div id="parentPendingList" class="space-y-3">
+               <!-- Rendered via JS -->
+             </div>
+          </div>
+
+          <!-- Active Task Log -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+             <div class="flex items-center justify-between mb-4">
+                <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+                  <span>📋</span> Active &amp; Assigned Tasks
+                </h3>
+             </div>
+             <div id="parentActiveTasksList" class="space-y-3">
+               <!-- Rendered via JS -->
+             </div>
+          </div>
+
+        </div>
+
+        <!-- Right Column: Kids & Rewards Mng -->
+        <div class="space-y-6">
+          
+          <!-- Registered Kids -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+            <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2 mb-4">
+              <span>👨‍👩‍👧‍👦</span> Family Accounts
+            </h3>
+            <div id="parentManageKidsList" class="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              <!-- Rendered via JS -->
+            </div>
+            <button onclick="app.switchPortalTab('signup'); app.logoutToPortal();" class="w-full mt-3 py-2.5 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 font-bold text-xs hover:border-violet-400 hover:text-violet-600 transition flex items-center justify-center gap-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus" aria-hidden="true" class="lucide lucide-plus w-4 h-4"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg> Add Another Kid
+            </button>
+          </div>
+
+          <!-- Store & Claims -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-slate-200">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+                <span>🎁</span> Rewards &amp; Claims
+              </h3>
+              <button onclick="app.openModal('createRewardModal')" class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center hover:bg-emerald-200 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="plus" aria-hidden="true" class="lucide lucide-plus w-4 h-4"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+              </button>
+            </div>
+            
+            <div class="mb-4">
+              <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Pending Claims</h4>
+              <div id="parentClaimsList" class="space-y-2">
+                <!-- Rendered via JS -->
+              </div>
+            </div>
+            
+            <div class="pt-4 border-t border-slate-100">
+              <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Manage Store Items</h4>
+              <button onclick="app.quickSwitchToKid(app.kids[0]?.id); setTimeout(() =&gt; app.setKidTab('rewards'), 100);" class="w-full py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs hover:bg-slate-200 transition flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="store" aria-hidden="true" class="lucide lucide-store w-4 h-4"><path d="M15 21v-5a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5"></path><path d="M17.774 10.31a1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.451 0 1.12 1.12 0 0 0-1.548 0 2.5 2.5 0 0 1-3.452 0 1.12 1.12 0 0 0-1.549 0 2.5 2.5 0 0 1-3.77-3.248l2.889-4.184A2 2 0 0 1 7 2h10a2 2 0 0 1 1.653.873l2.895 4.192a2.5 2.5 0 0 1-3.774 3.244"></path><path d="M4 10.95V19a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8.05"></path></svg> Open Kid Store View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= VIEW 3: KID ZONE ================= -->
+    <div id="kidZoneView" class="hidden space-y-6 animate-pop">
+      
+      <!-- Kid Header Dashboard -->
+      <div id="kidZoneHeader" class="p-5 sm:p-6 text-white rounded-3xl shadow-lg relative overflow-hidden bg-gradient-to-br from-amber-400 to-orange-500">
+        <div class="absolute -top-10 -right-10 w-40 h-40 bg-white rounded-full blur-3xl opacity-20"></div>
+        <div class="relative z-10 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 text-center sm:text-left">
+          
+          <div class="flex flex-col sm:flex-row items-center gap-4">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/40 flex items-center justify-center text-4xl sm:text-5xl shadow-inner relative">
+              <span id="kidHeaderAvatar">🦁</span>
+              <div class="absolute -bottom-2 -right-2 w-8 h-8 rounded-full bg-emerald-400 border-2 border-white flex items-center justify-center text-[10px] font-bold shadow-md">
+                Lv.<span id="kidLevelTextNumber">1</span>
+              </div>
+            </div>
+            <div>
+              <h2 id="kidHeaderTitle" class="font-fredoka text-3xl font-bold mb-1">Hey, Kid!</h2>
+              <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-sm font-semibold border border-white/20">
+                <span id="kidLevelText">Level 1 Hero</span>
+              </div>
+              <p class="text-[10px] font-semibold text-white/80 mt-2 flex items-center gap-1 uppercase tracking-wider justify-center sm:justify-start" id="kidPhClock">🇵🇭 PH: Tue, Nov 17, 3:28 PM • Resets 12:00 AM</p>
+            </div>
+          </div>
+
+          <div class="bg-black/20 backdrop-blur-sm rounded-2xl p-4 min-w-[140px] text-center border border-white/10 shadow-inner">
+            <p class="text-xs font-bold text-white/80 uppercase tracking-wider mb-1">My Stars</p>
+            <div class="font-fredoka text-4xl font-bold text-amber-300 drop-shadow-md flex items-center justify-center gap-2">
+              ⭐ <span id="kidHeaderStars">0</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative z-10 mt-5 pt-4 border-t border-white/20">
+           <div class="flex justify-between text-[10px] font-bold uppercase tracking-wider mb-1.5 text-white/90">
+             <span>Level Progress</span>
+             <span>Next Level: 100 pts</span>
+           </div>
+           <div class="w-full h-3 rounded-full bg-black/20 overflow-hidden shadow-inner">
+             <div id="kidLevelProgress" class="h-full bg-white rounded-full transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(255,255,255,0.8)]" style="width: 25%;"></div>
+           </div>
+        </div>
+      </div>
+
+      <!-- Kid Navigation Tabs -->
+      <div class="flex gap-2 p-1.5 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-x-auto snap-x">
+        <button id="tabTasks" onclick="app.setKidTab('tasks')" class="flex-1 min-w-[100px] py-3 px-4 rounded-xl font-fredoka font-bold text-sm bg-violet-600 text-white shadow-sm transition flex items-center justify-center gap-2 snap-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="check-square" aria-hidden="true" class="lucide lucide-check-square w-4 h-4"><path d="M21 10.656V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h12.344"></path><path d="m9 11 3 3L22 4"></path></svg> My Quests
+        </button>
+        <button id="tabRewards" onclick="app.setKidTab('rewards')" class="flex-1 min-w-[100px] py-3 px-4 rounded-xl font-fredoka font-bold text-sm text-slate-600 hover:bg-slate-50 transition flex items-center justify-center gap-2 snap-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="gift" aria-hidden="true" class="lucide lucide-gift w-4 h-4"><path d="M12 7v14"></path><path d="M20 11v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8"></path><path d="M7.5 7a1 1 0 0 1 0-5A4.8 8 0 0 1 12 7a4.8 8 0 0 1 4.5-5 1 1 0 0 1 0 5"></path><rect x="3" y="7" width="18" height="4" rx="1"></rect></svg> Rewards Store
+        </button>
+        <button id="tabHistory" onclick="app.setKidTab('history')" class="flex-1 min-w-[100px] py-3 px-4 rounded-xl font-fredoka font-bold text-sm text-slate-600 hover:bg-slate-50 transition flex items-center justify-center gap-2 snap-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="award" aria-hidden="true" class="lucide lucide-award w-4 h-4"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg> My Stuff
+        </button>
+      </div>
+
+      <!-- KID SECTION: TASKS -->
+      <div id="kidTasksSection" class="space-y-6">
+        
+        <!-- Open Quests (Up for grabs) -->
+        <div id="kidOpenQuestsSection" class="hidden">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-fredoka text-xl font-bold text-amber-600 flex items-center gap-2">
+              <span>⚡</span> Open Quests (Up for Grabs!)
+            </h3>
+          </div>
+          <div id="kidOpenQuestsList" class="space-y-3">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Assigned Tasks -->
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span>🎯</span> Today's Mission
+            </h3>
+          </div>
+          <div id="kidAssignedTasksList" class="space-y-3">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+
+        <!-- Completed Tasks -->
+        <div class="pt-4">
+          <div class="flex items-center gap-2 mb-3">
+            <h3 class="font-fredoka text-lg font-bold text-slate-500 flex items-center gap-2">
+              <span>✅</span> Done &amp; Dusted
+            </h3>
+          </div>
+          <div id="kidCompletedTasksList" class="space-y-2 opacity-75">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- KID SECTION: REWARDS STORE -->
+      <div id="kidRewardsSection" class="space-y-4 hidden">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+              <span>🎁</span> Star Rewards Shop
+            </h3>
+            <p class="text-xs text-slate-500">Spend your hard-earned stars for sweet perks!</p>
+          </div>
+        </div>
+        <div id="kidRewardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+
+      <!-- KID SECTION: MY REDEEMED REWARDS & HISTORY -->
+      <div id="kidHistorySection" class="space-y-6 hidden">
+        <div>
+          <h3 class="font-fredoka text-xl font-bold text-slate-800 flex items-center gap-2">
+            <span>🏆</span> My Redeemed Rewards
+          </h3>
+          <p class="text-xs text-slate-500">Track the rewards you've unlocked with your stars!</p>
+        </div>
+        <div id="kidRedemptionsList" class="space-y-3">
+          <!-- Rendered via JS -->
+        </div>
+
+        <!-- Star Adjustments / Behavior Log -->
+        <div class="pt-4 border-t border-slate-200 space-y-3">
+          <div>
+            <h4 class="font-fredoka text-lg font-bold text-slate-800 flex items-center gap-2">
+              <span>📋</span> Parent Star Adjustments
+            </h4>
+            <p class="text-xs text-slate-500">Bonus stars awarded or stars deducted by parents.</p>
+          </div>
+          <div id="kidAdjustmentsList" class="space-y-2.5">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= NOTIFICATION TOAST ================= -->
+  <div id="notificationToast" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-2xl flex items-center gap-3 transition-all duration-300 translate-y-24 opacity-0 z-50 pointer-events-none border border-slate-700">
+    <div id="toastIcon" class="text-xl">⭐</div>
+    <div id="toastMessage" class="font-fredoka font-bold text-sm">Success!</div>
+  </div>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- MODAL: KID PIN LOGIN -->
+  <div id="kidPinLoginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 sm:p-8 shadow-2xl text-center animate-pop">
+      <div class="flex justify-end -mt-2 -mr-2">
+        <button onclick="app.closeModal('kidPinLoginModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <div id="kidLoginAvatar" class="text-6xl mb-2">🦁</div>
+      <h3 id="kidLoginName" class="font-fredoka text-2xl font-bold text-slate-800">Hi, Boy!</h3>
+      <p id="kidLoginHint" class="text-xs text-slate-500 mb-6 font-medium">Enter your 4-digit Secret PIN</p>
+      
+      <!-- Custom Touch Numpad (Avoids ugly mobile keyboards) -->
+      <div class="mb-6 flex justify-center gap-3" id="kidPinDots">
+        <span class="w-3.5 h-3.5 rounded-full bg-slate-200 transition"></span>
+        <span class="w-3.5 h-3.5 rounded-full bg-slate-200 transition"></span>
+        <span class="w-3.5 h-3.5 rounded-full bg-slate-200 transition"></span>
+        <span class="w-3.5 h-3.5 rounded-full bg-slate-200 transition"></span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-3 max-w-[240px] mx-auto">
+        <button onclick="app.pressPinDigit(1)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">1</button>
+        <button onclick="app.pressPinDigit(2)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">2</button>
+        <button onclick="app.pressPinDigit(3)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">3</button>
+        <button onclick="app.pressPinDigit(4)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">4</button>
+        <button onclick="app.pressPinDigit(5)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">5</button>
+        <button onclick="app.pressPinDigit(6)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">6</button>
+        <button onclick="app.pressPinDigit(7)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">7</button>
+        <button onclick="app.pressPinDigit(8)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">8</button>
+        <button onclick="app.pressPinDigit(9)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">9</button>
+        <button onclick="app.clearPinDigits()" class="w-16 h-16 rounded-2xl bg-slate-100 text-slate-400 hover:text-slate-600 font-bold transition mx-auto flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="delete" aria-hidden="true" class="lucide lucide-delete w-6 h-6"><path d="M10 5a2 2 0 0 0-1.344.519l-6.328 5.74a1 1 0 0 0 0 1.481l6.328 5.741A2 2 0 0 0 10 19h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2z"></path><path d="m12 9 6 6"></path><path d="m18 9-6 6"></path></svg></button>
+        <button onclick="app.pressPinDigit(0)" class="w-16 h-16 rounded-2xl bg-slate-50 hover:bg-slate-100 text-slate-700 font-fredoka text-2xl font-bold transition mx-auto">0</button>
+      </div>
+
+      <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+        <p class="text-xs text-slate-400 mb-2">Or login with Username &amp; PIN</p>
+        <form onsubmit="app.handleUsernameLogin(event)" class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+          <input type="text" id="loginUsernameInput" placeholder="@username" class="flex-1 px-3 py-2 bg-transparent text-xs outline-none font-semibold lowercase">
+          <input type="password" id="loginPinInput" placeholder="PIN" class="w-16 px-2 py-2 bg-white border border-slate-200 rounded-lg text-xs text-center outline-none">
+          <button type="submit" class="px-3 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-right" aria-hidden="true" class="lucide lucide-arrow-right w-4 h-4"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: PARENT PIN -->
+  <div id="parentPinModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-xs w-full p-6 shadow-2xl text-center animate-pop">
+      <div class="w-12 h-12 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center mx-auto mb-3">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="shield" aria-hidden="true" class="lucide lucide-shield w-6 h-6"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"></path></svg>
+      </div>
+      <h3 class="font-fredoka text-lg font-bold text-slate-800">Parent Hub Sign In</h3>
+      <p class="text-xs text-slate-500 mb-4">Enter Parent PIN (Demo PIN: <strong id="demoParentPinHint" class="text-violet-600">1234</strong>)</p>
+      <input type="password" inputmode="numeric" id="parentPinInput" maxlength="4" placeholder="••••" onkeyup="if(this.value.length===4) app.verifyParentPin()" class="w-32 mx-auto tracking-widest text-center text-2xl py-2 px-3 rounded-xl border border-slate-300 font-mono focus:ring-2 focus:ring-violet-500 mb-4 outline-none">
+      <div class="flex gap-2">
+        <button onclick="app.closeModal('parentPinModal')" class="flex-1 py-2 rounded-xl border border-slate-200 font-fredoka text-xs text-slate-600">Cancel</button>
+        <button onclick="app.verifyParentPin()" class="flex-1 py-2 rounded-xl bg-violet-600 text-white font-fredoka font-bold text-xs">Unlock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADJUST POINTS (BONUS / NAUGHTY) -->
+  <div id="adjustPointsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-pop border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-fredoka text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span>⚖️</span> Star Adjustment
+        </h3>
+        <button onclick="app.closeModal('adjustPointsModal')" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      
+      <div class="flex items-center gap-3 mt-4 mb-4 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+        <div id="adjustKidAvatar" class="text-3xl">👦</div>
+        <div>
+          <h4 id="adjustKidName" class="font-fredoka font-bold text-slate-800 leading-tight">Kid Name</h4>
+          <p class="text-xs font-bold text-amber-500 mt-0.5">Current: <span id="adjustKidCurrentStars">0</span> Stars</p>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
+        <button id="adjustModeAddBtn" type="button" onclick="app.setAdjustMode('add')" class="flex-1 py-2 rounded-lg font-fredoka font-bold text-xs bg-emerald-500 text-white shadow-sm transition">Bonus Stars (+)</button>
+        <button id="adjustModeDeductBtn" type="button" onclick="app.setAdjustMode('deduct')" class="flex-1 py-2 rounded-lg font-fredoka font-bold text-xs text-slate-600 hover:bg-slate-200 transition">Deduct (-)</button>
+      </div>
+
+      <form onsubmit="app.handleAdjustPoints(event)" class="space-y-4">
+        <input type="hidden" id="adjustKidId">
+        
+        <div id="adjustAddPresets" class="flex flex-wrap gap-1.5">
+          <button type="button" onclick="app.applyAdjustPreset(5, 'Helping a sibling')" class="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">+5 Helping</button>
+          <button type="button" onclick="app.applyAdjustPreset(10, 'Doing extra chores')" class="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">+10 Extra Chore</button>
+          <button type="button" onclick="app.applyAdjustPreset(15, 'Great attitude today!')" class="px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">+15 Great Attitude</button>
+        </div>
+
+        <div id="adjustDeductPresets" class="hidden flex flex-wrap gap-1.5">
+          <button type="button" onclick="app.applyAdjustPreset(5, 'Not listening')" class="px-2 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">-5 Not Listening</button>
+          <button type="button" onclick="app.applyAdjustPreset(10, 'Tantrum / Naughty')" class="px-2 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">-10 Naughty</button>
+          <button type="button" onclick="app.applyAdjustPreset(15, 'Left a big mess')" class="px-2 py-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 text-[10px] font-bold">-15 Big Mess</button>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="col-span-1">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Amount</label>
+            <input type="number" id="adjustAmountInput" min="1" max="500" value="10" required="" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-bold text-center outline-none focus:ring-2 focus:ring-violet-500">
+          </div>
+          <div class="col-span-2">
+            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Reason / Note</label>
+            <input type="text" id="adjustReasonInput" placeholder="Why the adjustment?" required="" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold outline-none focus:ring-2 focus:ring-violet-500">
+          </div>
+        </div>
+
+        <div class="pt-3 flex gap-2 border-t border-slate-100">
+          <button type="button" onclick="app.closeModal('adjustPointsModal')" class="flex-1 py-2.5 rounded-xl border border-slate-200 font-fredoka text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
+          <button type="submit" id="adjustSubmitBtn" class="flex-1 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-fredoka font-bold text-xs shadow-md transition">Award +10 Stars</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PARENT SETTINGS -->
+  <div id="parentSettingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl animate-pop border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-fredoka text-lg font-bold text-slate-900">Family Settings</h3>
+        <button onclick="app.closeModal('parentSettingsModal')" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <form onsubmit="app.handleSaveParentSettings(event)" class="mt-4 space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Parent Display Name</label>
+          <input type="text" id="settingsParentName" required="" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:ring-2 focus:ring-violet-500 outline-none">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Family Name</label>
+          <input type="text" id="settingsFamilyName" required="" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-sm font-semibold focus:ring-2 focus:ring-violet-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Invite Code</label>
+            <input type="text" id="settingsFamilyCode" required="" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-mono uppercase font-bold focus:ring-2 focus:ring-violet-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Parent PIN</label>
+            <input type="text" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" id="settingsParentPin" required="" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-sm font-mono text-center font-bold focus:ring-2 focus:ring-violet-500 outline-none">
+          </div>
+        </div>
+        <div class="pt-3 flex gap-2">
+          <button type="button" onclick="app.closeModal('parentSettingsModal')" class="flex-1 py-2.5 rounded-xl border border-slate-200 font-fredoka text-xs text-slate-600">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-fredoka font-bold text-xs">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT TASK -->
+  <div id="editTaskModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-pop border border-slate-100">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <h3 class="font-fredoka text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span>✏️</span> Edit Task
+        </h3>
+        <button onclick="app.closeModal('editTaskModal')" class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <form onsubmit="app.handleSaveEditTask(event)" class="mt-4 space-y-4">
+        <input type="hidden" id="editTaskId">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Task Title</label>
+          <input type="text" id="editTaskTitleInput" required="" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold focus:ring-2 focus:ring-violet-500 outline-none">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Star Points</label>
+            <input type="number" id="editTaskPointsInput" min="1" max="1000" required="" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-amber-600 focus:ring-2 focus:ring-amber-500 outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Assigned Kid</label>
+            <select id="editTaskAssigneeSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white focus:ring-2 focus:ring-violet-500 outline-none">
+              <!-- Populated via JS -->
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Task Type</label>
+          <select id="editTaskFrequencySelect" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold bg-white focus:ring-2 focus:ring-violet-500 outline-none">
+            <option value="daily">🔄 Repetitive (Resets Every Day)</option>
+            <option value="once">⏳ Temporary (One-Time)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Parent Note</label>
+          <input type="text" id="editTaskNoteInput" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-violet-500 outline-none">
+        </div>
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="app.closeModal('editTaskModal')" class="flex-1 py-2.5 rounded-xl border border-slate-200 font-fredoka text-xs text-slate-600">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-fredoka font-bold text-xs">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE TASK (Advanced) -->
+  <div id="createTaskModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-pop border border-slate-100 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="font-fredoka text-xl font-bold text-slate-900 flex items-center gap-2">
+          <span>✨</span> Create New Task
+        </h3>
+        <button onclick="app.closeModal('createTaskModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <form onsubmit="app.handleCreateTask(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Task Title</label>
+          <input type="text" id="taskTitleInput" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-violet-500 focus:outline-none text-sm font-semibold">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Category</label>
+            <select id="taskCategorySelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white">
+              <option value="chores">🧹 Chores</option>
+              <option value="homework">📚 Homework &amp; Learning</option>
+              <option value="health">🥗 Health &amp; Habits</option>
+              <option value="kindness">💖 Kindness &amp; Family</option>
+              <option value="reading">📖 Reading</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Points</label>
+            <input type="number" id="taskPointsInput" min="5" step="5" value="20" required="" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-amber-600 focus:ring-2 focus:ring-amber-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Assign To Child</label>
+          <select id="taskAssigneeSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white">
+            <option value="all">🌟 All Kids (Shared Chore)</option>
+            <option value="open">⚡ Open Quest (First Kid Claims!)</option>
+            <!-- Generated via JS -->
+          </select>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Frequency</label>
+            <select id="taskFrequencySelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white">
+              <option value="daily">🔄 Repetitive (Every Day)</option>
+              <option value="once">⏳ Temporary (One-Time)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Approval Mode</label>
+            <select id="taskApprovalSelect" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:ring-2 focus:ring-violet-500 focus:outline-none bg-white">
+              <option value="parent_verify">Parent Must Verify</option>
+              <option value="instant">Instant Points upon Check</option>
+            </select>
+          </div>
+        </div>
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="app.closeModal('createTaskModal')" class="flex-1 py-2.5 rounded-xl border border-slate-300 font-fredoka font-semibold text-slate-600">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-900 font-fredoka font-bold shadow-md">Save &amp; Assign</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD REWARD -->
+  <div id="createRewardModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-pop border border-slate-100">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+        <h3 class="font-fredoka text-xl font-bold text-slate-900 flex items-center gap-2">
+          <span>🎁</span> Add Store Reward
+        </h3>
+        <button onclick="app.closeModal('createRewardModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+      <form onsubmit="app.handleCreateReward(event)" class="mt-4 space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Reward Title</label>
+          <input type="text" id="rewardTitleInput" required="" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none text-sm font-semibold">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Emoji Icon</label>
+            <input type="text" id="rewardEmojiInput" value="🍦" required="" class="w-full text-center text-2xl py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Points Cost</label>
+            <input type="number" id="rewardCostInput" min="5" step="5" value="50" required="" class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-bold text-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Short Description</label>
+          <input type="text" id="rewardDescInput" class="w-full px-4 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+        </div>
+        <div class="pt-4 flex gap-3">
+          <button type="button" onclick="app.closeModal('createRewardModal')" class="flex-1 py-2.5 rounded-xl border border-slate-300 font-fredoka font-semibold text-slate-600">Cancel</button>
+          <button type="submit" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-fredoka font-bold shadow-md">Add to Store</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SHARE & PACKAGE ONLINE -->
+  <div id="sharePackageModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl animate-pop border border-slate-100 max-h-[92vh] overflow-y-auto space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div class="flex items-center gap-2.5">
+          <span class="w-10 h-10 rounded-2xl bg-violet-100 text-violet-700 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="globe" aria-hidden="true" class="lucide lucide-globe w-5 h-5"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg>
+          </span>
+          <div>
+            <h3 class="font-fredoka text-xl font-bold text-slate-900">Access Online</h3>
+          </div>
+        </div>
+        <button onclick="app.closeModal('sharePackageModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="x" aria-hidden="true" class="lucide lucide-x w-4 h-4"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+      </div>
+
+      <div class="bg-gradient-to-br from-violet-50 to-indigo-50 rounded-2xl p-4 border border-violet-200 space-y-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-violet-800">1. Share With Your Kids</span>
+        <p class="text-xs text-slate-600">Send this Invite Link to your kids to sync accounts across devices:</p>
+        <div class="flex items-center gap-2">
+          <input type="text" id="shareFamilyLinkInput" readonly="" class="flex-1 px-3 py-2 rounded-xl bg-white border border-violet-200 text-xs font-mono text-slate-700 outline-none">
+          <button type="button" onclick="app.copyFamilyShareLink()" class="px-3 py-2 rounded-xl bg-violet-600 text-white font-fredoka font-bold text-xs flex items-center gap-1 shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="copy" aria-hidden="true" class="lucide lucide-copy w-3.5 h-3.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path></svg> Copy Link
+          </button>
+        </div>
+        <div class="text-xs pt-1 text-slate-600">Family Code: <strong id="modalFamilyCodeText" class="font-mono text-violet-700">STAR-2026</strong></div>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-3">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-800">2. Host Online for Free (Vercel)</span>
+        <p class="text-xs text-slate-600">Download the Vercel-ready <code>index.html</code> (bundled with your family data) and deploy it globally.</p>
+        <button type="button" onclick="app.downloadPackagedApp()" class="w-full py-3 px-4 rounded-2xl bg-slate-900 text-white font-fredoka font-bold text-xs shadow-md flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-4 h-4"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg> Download index.html (Vercel Ready)
+        </button>
+      </div>
+      
+      <div class="flex items-center justify-between pt-2 border-t border-slate-100 gap-2">
+        <button type="button" onclick="app.exportFamilyBackup()" class="flex-1 py-2.5 px-3 rounded-xl border border-slate-200 font-fredoka font-bold text-xs text-slate-700 flex items-center justify-center gap-1.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="save" aria-hidden="true" class="lucide lucide-save w-3.5 h-3.5"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"></path><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"></path><path d="M7 3v4a1 1 0 0 0 1 1h7"></path></svg> Export Backup
+        </button>
+        <label class="flex-1 py-2.5 px-3 rounded-xl border border-slate-200 font-fredoka font-bold text-xs text-slate-700 flex items-center justify-center gap-1.5 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="upload" aria-hidden="true" class="lucide lucide-upload w-3.5 h-3.5"><path d="M12 3v12"></path><path d="m17 8-5-5-5 5"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path></svg> Restore Backup
+          <input type="file" accept=".json" onchange="app.importFamilyBackup(event)" class="hidden">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FIREBASE SYNC PLACEHOLDER ================= -->
+  <!-- Note: Real Firebase imports are active in previous versions, mocked here for clean offline execution unless config exists -->
+  <script type="module">
+    window.initCloudSync = async function(appInstance) {
+      if (typeof __firebase_config === 'undefined' || !__firebase_config) return;
+      // Firebase setup logic goes here (omitted for clean standalone behavior)
+    };
+  </script>
+
+  <!-- ================= APP LOGIC ================= -->
+  
+
+</body></html>
